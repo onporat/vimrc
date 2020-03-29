@@ -80,6 +80,23 @@ set nrformats-=octal
 "----------------------------------------------------------------
 " 2. Plugins (Plug)
 "----------------------------------------------------------------
+
+" Vim-PLug core
+let vimplug_exists=expand('~/.config/nvim/autoload/plug.vim')
+
+if !filereadable(vimplug_exists)
+  if !executable("curl")
+    echoerr "You have to install curl or first install vim-plug yourself!"
+    execute "q!"
+  endif
+  echo "Installing Vim-Plug..."
+  echo ""
+  silent exec "!\curl -fLo " . vimplug_exists . " --create-dirs https://raw.githubusercontent.com/junegunn/vim-plug/master/plug.vim"
+  let g:not_finish_vimplug = "yes"
+
+  autocmd VimEnter * PlugInstall
+endif
+
 " List of plugins installed
 call plug#begin('~/.vim/plugged')
 
@@ -264,15 +281,31 @@ nnoremap <silent> <C-n> :call <SID>ToggleNTree()<CR>
 
 " ALE settings
 let g:ale_linters = {
+	\ 'rust'       : ['rls'],
 	\ 'python'     : ['pylint'],
 	\ 'javascript' : ['jshint'],
 	\ 'css'        : ['csslint'],
 	\ 'tex'        : ['chktex'],
 	\ }
 
+let g:ale_fixers = {
+	\ '*'          : ['remove_trailing_lines', 'trim_whitespace'],
+	\ 'rust'       : ['rustfmt'],
+	\ 'python'     : ['autopep8'],
+	\ }
+
+let g:ale_fix_on_save = 1
+let g:ale_completion_enabled = 1
+let g:ale_echo_msg_format = '[%linter%]% [code]% %s'
+nnoremap <silent> K :ALEHover<CR>
+nnoremap <silent> gd :ALEGoToDefinition<CR>
+nnoremap <silent> R :ALERename<CR>
+
+
 " Navigate between errors
-nnoremap <Leader>h :lprevious<CR>zz
-nnoremap <Leader>l :lnext<CR>zz
+nnoremap <Leader>l :ALENextWrap<Return>
+nnoremap <Leader>h :ALEPreviousWrap<Return>
+
 
 " Listtoggle settings
 let g:lt_location_list_toggle_map = '<leader>e'
@@ -590,7 +623,7 @@ if &term =~ 'screen'
 endif
 
 " Mouse
-set mouse=a
+" set mouse=a
 
 " Highlight cursor line and cursor column
 set cursorline
@@ -705,6 +738,10 @@ nnoremap <Leader>bd :call <SID>OnlyCloseBuffer()<CR>
 nnoremap <C-h> :bprev<CR>
 nnoremap <C-l> :bnext<CR>
 
+" Jump back to last edited buffer
+nnoremap <leader>, <C-^>
+inoremap <leader>, <esc><C-^>
+
 " Edit and explore buffers
 nnoremap <Leader>bb :edit <C-R>=expand("%:p:h")<CR>/
 nnoremap <Leader>bg :buffers<CR>:buffer<Space>
@@ -743,11 +780,12 @@ nnoremap <Leader>tt :tabedit <C-R>=expand("%:p:h")<CR>/
 nnoremap <Leader>tr :execute 'silent! tabmove ' . (tabpagenr()-2)<CR>
 nnoremap <Leader>ty :execute 'silent! tabmove ' . tabpagenr()<CR>
 
+
 "----------------------------------------------------------------
 " 9. Multiple windows
 "----------------------------------------------------------------
 " Remap wincmd
-map <Leader>, <C-w>
+" map <Leader>, <C-w>
 
 set winminheight=0
 set winminwidth=0
